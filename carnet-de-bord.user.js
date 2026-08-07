@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Carnet de bord — Alternance (kDrive)
 // @namespace    harry.carnet
-// @version      3.1
+// @version      4.0
 // @description  Suivi des candidatures, lu et réécrit directement dans Carnet de Bord.xlsx sur kDrive
 // @author       Harry
 // @updateURL    https://raw.githubusercontent.com/Elvalio/carnet-de-bord/main/carnet-de-bord.user.js
@@ -732,23 +732,53 @@
   .cb-toast{position:fixed;bottom:80px;left:50%;transform:translate(-50%,12px);background:var(--surface0);border:1px solid var(--surface1);
   color:var(--text);padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:99999;max-width:90vw;text-align:center;}
   .cb-toast.show{opacity:1;transform:translate(-50%,0);}
+
+  /* Coquille mobile : barre de navigation, bouton flottant, menu « Plus ».
+     Définie ici mais masquée — seul le @media sous 620px l'active. Le desktop ne la voit jamais. */
+  .cb-nav,.cb-fab,.cb-menu-ov{display:none;}
+  .cb-nav{position:fixed;left:0;right:0;bottom:0;z-index:9997;background:var(--mantle);border-top:1px solid var(--surface0);
+  grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 20px var(--ombre);}
+  .cb-nav-i{position:relative;background:none;border:none;color:var(--overlay1);font:inherit;font-size:10.5px;font-weight:560;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 4px 8px;min-height:58px;cursor:pointer;}
+  .cb-nav-i svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+  .cb-nav-i[aria-selected="true"]{color:var(--mauve);}
+  .cb-nav-badge{font-style:normal;position:absolute;top:6px;left:calc(50% + 7px);min-width:16px;height:16px;padding:0 4px;
+  background:var(--surface1);color:var(--text);border-radius:8px;font-family:var(--mono);font-size:9.5px;line-height:16px;text-align:center;}
+  .cb-nav-badge:empty{display:none;}
+  .cb-nav-i[aria-selected="true"] .cb-nav-badge{background:var(--mauve);color:var(--base);}
+  .cb-fab{position:fixed;right:15px;z-index:9997;width:56px;height:56px;border-radius:50%;border:none;
+  background:var(--mauve);color:var(--base);font-size:30px;line-height:0;cursor:pointer;box-shadow:0 6px 20px var(--ombre);
+  align-items:center;justify-content:center;padding:0 0 3px;}
+  .cb-fab:active{transform:scale(.93);}
+  .cb-menu-ov{position:fixed;inset:0;background:var(--voile);z-index:99998;align-items:flex-end;justify-content:center;}
+  .cb-menu-ov.open{display:flex;}
+  .cb-menu{background:var(--base);border:1px solid var(--surface1);border-bottom:none;border-radius:16px 16px 0 0;
+  width:100%;max-width:560px;padding:6px 8px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:1px;
+  animation:cb-monte .2s ease;}
+  @keyframes cb-monte{from{transform:translateY(30px);opacity:.4;}to{transform:translateY(0);opacity:1;}}
+  .cb-menu-h{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--overlay0);
+  padding:12px 12px 9px;text-align:center;}
+  .cb-menu-i{display:flex;align-items:center;gap:13px;background:none;border:none;color:var(--text);font:inherit;font-size:15px;
+  text-align:left;padding:14px 13px;border-radius:11px;cursor:pointer;min-height:52px;width:100%;}
+  .cb-menu-i:active{background:var(--surface0);}
+  .cb-menu-i span{font-size:17px;width:22px;text-align:center;flex:0 0 auto;color:var(--subtext0);}
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--lavender);outline-offset:1px;}
   @media(max-width:620px){
-  .cb-app{padding:14px 12px calc(120px + env(safe-area-inset-bottom));}
+  .cb-app{padding:14px 12px calc(112px + env(safe-area-inset-bottom));}
 
-  /* En-tête : titre compact, chiffres en bande défilante plutôt qu'en grille qui s'empile. */
-  .cb-head{gap:10px;margin-bottom:12px;position:relative;padding-right:92px;}
+  /* Coquille native : la barre du bas et le bouton flottant remplacent
+     la barre d'actions, les onglets du haut et le bouton « + » en ligne. */
+  .cb-nav{display:grid;}
+  .cb-fab{display:flex;bottom:calc(70px + env(safe-area-inset-bottom));}
+  .cb-onglets,.cb-sync,.cb-outils-head,#btn-ajouter{display:none!important;}
+
+  /* En-tête : titre seul ; les outils sont passés dans la barre du bas et le menu « Plus ». */
+  .cb-head{gap:10px;margin-bottom:12px;}
   .cb-head h1{font-size:21px;}
   .cb-file{font-size:10.5px;}
-  .cb-outils-head{position:absolute;top:0;right:0;}
   .cb-theme{padding:8px 10px;min-height:40px;}
   .cb-tech{display:none;}
   *{-webkit-tap-highlight-color:transparent;}
-
-  /* Onglets : deux moitiés franches, hauteur confortable au pouce. */
-  .cb-onglets{margin-bottom:12px;padding:3px;}
-  .cb-onglet{padding:11px 8px;font-size:14px;min-height:44px;}
-  .cb-onglet i{margin-left:5px;}
 
   /* Compteurs : six cellules sur deux rangées, aucune hors écran. */
   .cb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:100%;}
@@ -756,10 +786,7 @@
   .cb-stat b{font-size:16px;}
   .cb-stat small{font-size:8px;letter-spacing:.01em;display:block;overflow:hidden;text-overflow:ellipsis;}
 
-  /* Actions : grille de trois colonnes, tous les boutons visibles d'un coup. */
-  .cb-sync{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px;}
-  .cb-sync span{display:none;}
-  .cb-sync .cb-btn{min-height:42px;padding:8px 6px;font-size:13px;width:100%;}
+  /* Filtres : bande défilante horizontale, indépendante du reste. */
   .cb-chips{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:2px;scrollbar-width:none;}
   .cb-chips::-webkit-scrollbar{display:none;}
   .cb-chip{flex:0 0 auto;min-height:36px;}
@@ -813,12 +840,13 @@
   .cb-ov{overscroll-behavior:contain;}
   .cb-lieu{font-size:11px;padding:2px 6px;}
 
-  .cb-bar{left:10px;right:10px;bottom:calc(12px + env(safe-area-inset-bottom));transform:translate(0,150%);max-width:none;}
+  /* Barre d'enregistrement : remontée au-dessus de la barre de navigation. */
+  .cb-bar{left:10px;right:10px;bottom:calc(74px + env(safe-area-inset-bottom));transform:translate(0,180%);max-width:none;}
   .cb-bar.on{transform:translate(0,0);}
   .cb-bar p b{font-size:13.5px;}
   .cb-bar p{font-size:12px;}
   .cb-bar .cb-btn{flex:0 0 auto;}
-  .cb-toast{left:10px;right:10px;bottom:calc(90px + env(safe-area-inset-bottom));transform:translate(0,12px);max-width:none;}
+  .cb-toast{left:10px;right:10px;bottom:calc(132px + env(safe-area-inset-bottom));transform:translate(0,12px);max-width:none;}
   .cb-toast.show{transform:translate(0,0);}
   }
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}`;
@@ -963,6 +991,40 @@
     </div>
   </div></div>
 
+  <nav class="cb-nav" id="cb-nav">
+    <button class="cb-nav-i" data-onglet="candidatures" aria-selected="true">
+      <svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
+      <span>Candidatures</span><i class="cb-nav-badge" id="nb-cand"></i>
+    </button>
+    <button class="cb-nav-i" data-onglet="prospects" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
+      <span>À postuler</span><i class="cb-nav-badge" id="nb-prosp"></i>
+    </button>
+    <button class="cb-nav-i" id="nav-carte">
+      <svg viewBox="0 0 24 24"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
+      <span>Carte</span>
+    </button>
+    <button class="cb-nav-i" id="nav-plus">
+      <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>
+      <span>Plus</span>
+    </button>
+  </nav>
+
+  <button class="cb-fab" id="cb-fab" aria-label="Ajouter">+</button>
+
+  <div class="cb-menu-ov" id="cb-menu-ov">
+    <div class="cb-menu" role="menu">
+      <div class="cb-menu-h">Actions</div>
+      <button class="cb-menu-i" data-act="save" role="menuitem"><span>⭱</span>Enregistrer sur kDrive</button>
+      <button class="cb-menu-i" data-act="charger" role="menuitem"><span>↻</span>Charger depuis kDrive</button>
+      <button class="cb-menu-i" data-act="historique" role="menuitem"><span>≡</span>Historique des modifications</button>
+      <button class="cb-menu-i" data-act="nettoyer" role="menuitem"><span>✦</span>Nettoyer les textes</button>
+      <button class="cb-menu-i" data-act="reglages" role="menuitem"><span>⚙</span>Réglages kDrive</button>
+      <button class="cb-menu-i" data-act="theme" role="menuitem"><span>◐</span>Basculer le thème</button>
+      <button class="cb-menu-i" data-act="recharger" role="menuitem"><span>⟳</span>Recharger la page</button>
+    </div>
+  </div>
+
   <div class="cb-toast" id="toast"></div>`;
 
   document.head.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">';
@@ -1037,6 +1099,11 @@
     $('#n-prosp').textContent = prospects.length;
     document.querySelectorAll('.cb-onglet').forEach(b =>
       b.setAttribute('aria-selected', b.dataset.onglet === onglet));
+    // Barre de navigation mobile : même état actif, badges de comptage.
+    document.querySelectorAll('.cb-nav-i[data-onglet]').forEach(b =>
+      b.setAttribute('aria-selected', b.dataset.onglet === onglet));
+    $('#nb-cand').textContent = items.length || '';
+    $('#nb-prosp').textContent = prospects.length || '';
     const prospectsVue = onglet === 'prospects';
     $('#chips').style.display = prospectsVue ? 'none' : '';
     $('#radar').style.display = prospectsVue ? 'none' : '';
@@ -1083,7 +1150,7 @@
       const age = actif ? tonAge(j) : 'var(--overlay0)';
       let host = '';
       if (it.source) { try { host = new URL(it.source).hostname.replace(/^www\./, ''); } catch (e) { host = 'lien'; } }
-      return `<li class="cb-card" style="--tone:${conf.tone};--age:${age}">
+      return `<li class="cb-card" data-id="${it.id}" style="--tone:${conf.tone};--age:${age}">
         <div>
           <div class="cb-t"><b>${esc(it.entreprise) || 'Sans nom'}</b>${it.ville ? `<span class="cb-lieu">${esc(it.ville)}</span>` : ''}${it.source ? `<a href="${esc(it.source)}" target="_blank" rel="noopener">↗ ${esc(host)}</a>` : ''}</div>
           <div class="cb-poste">${esc(it.poste)}</div>
@@ -1491,7 +1558,7 @@
       let host = '';
       if (p.source) { try { host = new URL(p.source).hostname.replace(/^www\./, ''); } catch (e) { host = 'lien'; } }
       const j = jours(p.reperee);
-      return `<li class="cb-card cb-prospect">
+      return `<li class="cb-card cb-prospect" data-idp="${p.id}">
         <div>
           <div class="cb-t"><b>${esc(p.entreprise) || 'Sans nom'}</b>${p.ville ? `<span class="cb-lieu">${esc(p.ville)}</span>` : ''}${p.source ? `<a href="${esc(p.source)}" target="_blank" rel="noopener">↗ ${esc(host)}</a>` : ''}</div>
           <div class="cb-poste">${esc(p.poste) || 'poste à préciser'}</div>
@@ -1824,8 +1891,44 @@
     $('#ov-reglages').classList.remove('open');
     charger();
   });
+
+  /* ---- coquille mobile ----
+     La barre du bas (onglets Candidatures / À postuler) réutilise la délégation data-onglet ;
+     seuls Carte, le bouton flottant, le menu « Plus » et le tap-sur-carte sont câblés ici.
+     Chaque action délègue aux fonctions existantes : aucune logique dupliquée. */
+  const menuOv = $('#cb-menu-ov');
+  const fermerMenu = () => menuOv.classList.remove('open');
+  $('#nav-carte').addEventListener('click', ouvrirCarte);
+  $('#nav-plus').addEventListener('click', () => menuOv.classList.add('open'));
+  $('#cb-fab').addEventListener('click', () => onglet === 'prospects' ? ouvrirProspect(null) : ouvrirFiche(null));
+  menuOv.addEventListener('click', e => {
+    if (e.target === menuOv) { fermerMenu(); return; }        // tap sur le voile
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    fermerMenu();
+    switch (b.dataset.act) {
+      case 'save': enregistrer(conflit === true); break;
+      case 'charger':
+        if (modifie && !confirm('Des modifications ne sont pas encore envoyées sur kDrive. Recharger les écrasera. Continuer ?')) return;
+        charger(); break;
+      case 'historique': ouvrirHistorique(); break;
+      case 'nettoyer': ouvrirNettoyage(); break;
+      case 'reglages': ouvrirReglages(); break;
+      case 'theme': $('#btn-theme').click(); break;
+      case 'recharger': $('#btn-recharger').click(); break;
+    }
+  });
+  // Sur mobile, taper une carte (hors lien ou bouton) ouvre la fiche.
+  $('#list').addEventListener('click', e => {
+    if (window.innerWidth > 620 || e.target.closest('a,button')) return;
+    const c = e.target.closest('.cb-card');
+    if (!c) return;
+    if (c.dataset.id) ouvrirFiche(c.dataset.id);
+    else if (c.dataset.idp) ouvrirProspect(c.dataset.idp);
+  });
+
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') document.querySelectorAll('.cb-ov.open').forEach(o => o.classList.remove('open'));
+    if (e.key === 'Escape') document.querySelectorAll('.cb-ov.open,.cb-menu-ov.open').forEach(o => o.classList.remove('open'));
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('#ov-fiche').classList.contains('open')) validerFiche();
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('#ov-prospect').classList.contains('open')) validerProspect();
     if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); enregistrer(); }
