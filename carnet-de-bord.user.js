@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Carnet de bord — Alternance (kDrive)
 // @namespace    harry.carnet
-// @version      3.0
+// @version      3.1
 // @description  Suivi des candidatures, lu et réécrit directement dans Carnet de Bord.xlsx sur kDrive
 // @author       Harry
-// @updateURL    https://gist.githubusercontent.com/Elvalio/f9e30da71f5c4f58c2d3d36b907b229d/raw/carnet-de-bord.user.js
-// @downloadURL  https://gist.githubusercontent.com/Elvalio/f9e30da71f5c4f58c2d3d36b907b229d/raw/carnet-de-bord.user.js
+// @updateURL    https://raw.githubusercontent.com/Elvalio/carnet-de-bord/main/carnet-de-bord.user.js
+// @downloadURL  https://raw.githubusercontent.com/Elvalio/carnet-de-bord/main/carnet-de-bord.user.js
 // @match        https://internsearch.com/*
 // @match        https://example.com/*
 // @grant        GM_xmlhttpRequest
