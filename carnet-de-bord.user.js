@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Carnet de bord — Alternance (kDrive)
 // @namespace    harry.carnet
-// @version      4.1
+// @version      4.2
 // @description  Suivi des candidatures, lu et réécrit directement dans Carnet de Bord.xlsx sur kDrive
 // @author       Harry
 // @updateURL    https://raw.githubusercontent.com/Elvalio/carnet-de-bord/main/carnet-de-bord.user.js
@@ -677,6 +677,7 @@
   .cb-sf{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap;}
   .cb-sf .cb-btn.d{margin-right:auto;}
   .cb-rel{font-family:var(--mono);font-size:12px;color:var(--overlay1);}
+  .cb-ver{font-family:var(--mono);font-size:11px;color:var(--overlay0);margin:12px 2px 0;text-align:right;}
   #map{height:58vh;min-height:300px;border-radius:10px;border:1px solid var(--surface0);background:var(--mantle);}
   #map .leaflet-popup-content-wrapper,#map .leaflet-popup-tip{background:var(--mantle);color:var(--text);}
   #map .leaflet-popup-content{font-family:var(--sans);font-size:13px;line-height:1.45;}
@@ -1009,6 +1010,7 @@
       </select></div>
       <div class="cb-f w"><div id="diag">Le diagnostic affichera ici la réponse brute de l'API.</div></div>
     </div>
+    <p class="cb-ver" id="app-version"></p>
     <div class="cb-sf">
       <button class="cb-btn g" id="c-diag">Diagnostic</button>
       <button class="cb-btn g" id="c-sonde">Tester l'envoi</button>
@@ -1085,6 +1087,12 @@
     $('#btn-theme').textContent = theme === 'dark' ? '☀' : '☾';
   }
   appliquerTheme();
+
+  // Version affichée dans les réglages, lue depuis l'en-tête via GM_info (jamais recopiée à la main).
+  try {
+    const v = (typeof GM_info !== 'undefined' && GM_info.script && GM_info.script.version) || '';
+    $('#app-version').textContent = v ? 'Carnet de bord — version ' + v : '';
+  } catch (e) { /* GM_info indisponible : la ligne reste vide */ }
 
   function toast(msg) {
     const t = $('#toast');

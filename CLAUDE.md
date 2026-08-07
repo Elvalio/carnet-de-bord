@@ -54,6 +54,10 @@ L'interface est utilisée quotidiennement sur Firefox Android, écran d'environ 
 
 Incrémenter `@version` dans l'en-tête, sinon Violentmonkey ne proposera jamais la mise à jour. Vérifier la syntaxe avec `node --check carnet-de-bord.user.js`. Puis commit et push : les appareils se mettent à jour seuls depuis l'URL déclarée en `@updateURL`. Le dépôt doit rester public, `raw.githubusercontent.com` exigeant un token sur un dépôt privé, ce que Violentmonkey ne sait pas fournir.
 
+La version est affichée dans les Réglages (`#app-version`), lue depuis `GM_info.script.version` au démarrage : elle suit donc automatiquement `@version`, ne jamais la recopier en dur.
+
+Migration des appareils encore sur le gist : tant qu'une copie installée pointe son `@updateURL` sur l'ancien gist (`f9e30da71f5c4f58c2d3d36b907b229d`), pousser aussi la nouvelle version sur ce gist (`gh api -X PATCH /gists/{id}`) — c'est le seul canal qu'elle surveille. Comme le fichier poussé porte déjà le `@updateURL` vers le dépôt, cette mise à jour rapatrie l'appareil vers le dépôt en un coup. Une fois les appareils confirmés sur `raw.githubusercontent.com`, cesser de toucher au gist et pousser uniquement sur le dépôt.
+
 ## Travail sur deux systèmes
 
 Le projet est développé sur la même machine, alternativement sous Linux et sous Windows. L'historique des conversations de Claude Code est stocké localement dans `~/.claude/` et ne suit pas d'un système à l'autre : `/resume` ne retrouvera rien de ce qui a été fait sous l'autre. Il en va de même des réglages et des permissions accordées.
