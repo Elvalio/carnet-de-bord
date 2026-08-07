@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Carnet de bord — Alternance (kDrive)
 // @namespace    harry.carnet
-// @version      4.2
+// @version      4.3
 // @description  Suivi des candidatures, lu et réécrit directement dans Carnet de Bord.xlsx sur kDrive
 // @author       Harry
 // @updateURL    https://raw.githubusercontent.com/Elvalio/carnet-de-bord/main/carnet-de-bord.user.js
@@ -15,6 +15,7 @@
 // @grant        GM_getResourceText
 // @connect      api.infomaniak.com
 // @connect      nominatim.openstreetmap.org
+// @connect      raw.githubusercontent.com
 // @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
 // @require      https://unpkg.com/leaflet@1.9.4/dist/leaflet.js
 // @resource     leafletcss https://unpkg.com/leaflet@1.9.4/dist/leaflet.css
@@ -677,7 +678,11 @@
   .cb-sf{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap;}
   .cb-sf .cb-btn.d{margin-right:auto;}
   .cb-rel{font-family:var(--mono);font-size:12px;color:var(--overlay1);}
-  .cb-ver{font-family:var(--mono);font-size:11px;color:var(--overlay0);margin:12px 2px 0;text-align:right;}
+  .cb-maj{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 2px 0;}
+  .cb-ver{font-family:var(--mono);font-size:11px;color:var(--overlay0);flex:1 1 auto;}
+  .cb-maj-etat{font-family:var(--mono);font-size:11px;color:var(--overlay1);}
+  .cb-maj-etat.maj{color:var(--peach);}
+  #btn-maj{padding:6px 12px;font-size:13px;}
   #map{height:58vh;min-height:300px;border-radius:10px;border:1px solid var(--surface0);background:var(--mantle);}
   #map .leaflet-popup-content-wrapper,#map .leaflet-popup-tip{background:var(--mantle);color:var(--text);}
   #map .leaflet-popup-content{font-family:var(--sans);font-size:13px;line-height:1.45;}
@@ -1010,7 +1015,11 @@
       </select></div>
       <div class="cb-f w"><div id="diag">Le diagnostic affichera ici la réponse brute de l'API.</div></div>
     </div>
-    <p class="cb-ver" id="app-version"></p>
+    <div class="cb-maj">
+      <span class="cb-ver" id="app-version"></span>
+      <span class="cb-maj-etat" id="maj-etat"></span>
+      <button class="cb-btn g" id="btn-maj" style="display:none">Mettre à jour</button>
+    </div>
     <div class="cb-sf">
       <button class="cb-btn g" id="c-diag">Diagnostic</button>
       <button class="cb-btn g" id="c-sonde">Tester l'envoi</button>
@@ -1827,6 +1836,53 @@
     $('#c-nom').value = cfg.fileName;
     $('#c-mode').value = cfg.uploadMode;
     $('#ov-reglages').classList.add('open');
+    verifierMaj();
+  }
+
+  /* ---- mise à jour depuis l'app ----
+     On lit le @version distant et on le compare à celui installé. Aucune API ne permet
+     d'installer la mise à jour en silence : le bouton ouvre l'URL du script, ce qui tombe
+     sur l'écran d'installation de Violentmonkey. Le fetch passe par XHR nu (jamais api()),
+     donc sans en-tête d'autorisation : le token kDrive ne part jamais vers GitHub. */
+  const URL_MAJ = () => (typeof GM_info !== 'undefined' && GM_info.script
+      && (GM_info.script.downloadURL || GM_info.script.updateURL))
+    || 'https://raw.githubusercontent.com/Elvalio/carnet-de-bord/main/carnet-de-bord.user.js';
+
+  function versionPlusRecente(dispo, actuelle) {
+    const a = String(dispo).split('.').map(n => parseInt(n, 10) || 0);
+    const b = String(actuelle).split('.').map(n => parseInt(n, 10) || 0);
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+      if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0);
+    }
+    return false;
+  }
+
+  function verifierMaj() {
+    const etat = $('#maj-etat'), btn = $('#btn-maj');
+    const actuelle = (typeof GM_info !== 'undefined' && GM_info.script && GM_info.script.version) || '';
+    const url = URL_MAJ();
+    btn.style.display = 'none';
+    etat.className = 'cb-maj-etat';
+    etat.textContent = 'vérification…';
+    XHR({
+      method: 'GET',
+      url: url + (url.includes('?') ? '&' : '?') + '_=' + Date.now(),
+      headers: { 'Accept': 'text/plain' },   // pas d'Authorization : rien de sensible ne part vers GitHub
+      timeout: 15000,
+      onload: r => {
+        const m = /@version\s+([^\s]+)/.exec(r.responseText || '');
+        if (!m) { etat.textContent = 'vérification impossible'; return; }
+        if (versionPlusRecente(m[1], actuelle)) {
+          etat.textContent = 'version ' + m[1] + ' disponible';
+          etat.className = 'cb-maj-etat maj';
+          btn.style.display = '';
+        } else {
+          etat.textContent = 'à jour';
+        }
+      },
+      onerror: () => { etat.textContent = 'vérification impossible'; },
+      ontimeout: () => { etat.textContent = 'vérification impossible'; }
+    });
   }
   function lireReglages() {
     cfg.token = $('#c-token').value.trim();
@@ -1932,6 +1988,8 @@
     toucher(); fermerFiche(); rendre();
   });
   $('#c-annuler').addEventListener('click', () => $('#ov-reglages').classList.remove('open'));
+  // Ouvre l'URL du script : Violentmonkey l'intercepte et propose l'installation.
+  $('#btn-maj').addEventListener('click', () => window.open(URL_MAJ(), '_blank'));
   $('#c-diag').addEventListener('click', () => { lireReglages(); $('#diag').textContent = 'Test en cours…'; diagnostic(); });
   $('#c-sonde').addEventListener('click', () => { lireReglages(); $('#diag').textContent = 'Sonde en cours…'; sonder(); });
   $('#c-valider').addEventListener('click', () => {

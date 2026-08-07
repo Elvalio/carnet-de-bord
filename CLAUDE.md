@@ -56,6 +56,8 @@ Incrémenter `@version` dans l'en-tête, sinon Violentmonkey ne proposera jamais
 
 La version est affichée dans les Réglages (`#app-version`), lue depuis `GM_info.script.version` au démarrage : elle suit donc automatiquement `@version`, ne jamais la recopier en dur.
 
+Vérification de mise à jour depuis l'app (v4.3) : à l'ouverture des Réglages, `verifierMaj()` télécharge le `@version` distant (`URL_MAJ()` = `GM_info.script.downloadURL`, repli sur l'URL brute du dépôt) et le compare à l'installé ; affiche « à jour » ou « version X disponible » (`#maj-etat`), et montre alors le bouton `#btn-maj`. Aucune API ne permet une installation silencieuse : le bouton fait `window.open(URL_MAJ())`, ce qui tombe sur l'écran d'installation de Violentmonkey (un tap à confirmer ; sur Firefox Android, ouvrir un `.user.js` peut selon les versions télécharger le fichier au lieu d'ouvrir l'installateur). Le fetch passe par le wrapper `XHR` nu, **jamais** `api()` : pas d'en-tête d'autorisation, le token ne part donc jamais vers GitHub. `raw.githubusercontent.com` a été ajouté aux `@connect` pour ce contrôle.
+
 Migration des appareils encore sur le gist : tant qu'une copie installée pointe son `@updateURL` sur l'ancien gist (`f9e30da71f5c4f58c2d3d36b907b229d`), pousser aussi la nouvelle version sur ce gist (`gh api -X PATCH /gists/{id}`) — c'est le seul canal qu'elle surveille. Comme le fichier poussé porte déjà le `@updateURL` vers le dépôt, cette mise à jour rapatrie l'appareil vers le dépôt en un coup. Une fois les appareils confirmés sur `raw.githubusercontent.com`, cesser de toucher au gist et pousser uniquement sur le dépôt.
 
 ## Travail sur deux systèmes
