@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Carnet de bord — Alternance (kDrive)
 // @namespace    harry.carnet
-// @version      4.0
+// @version      4.1
 // @description  Suivi des candidatures, lu et réécrit directement dans Carnet de Bord.xlsx sur kDrive
 // @author       Harry
 // @updateURL    https://raw.githubusercontent.com/Elvalio/carnet-de-bord/main/carnet-de-bord.user.js
@@ -746,6 +746,9 @@
   background:var(--surface1);color:var(--text);border-radius:8px;font-family:var(--mono);font-size:9.5px;line-height:16px;text-align:center;}
   .cb-nav-badge:empty{display:none;}
   .cb-nav-i[aria-selected="true"] .cb-nav-badge{background:var(--mauve);color:var(--base);}
+  /* Aucun prospect : plus de « À postuler » dans la barre, qui repasse à trois colonnes. */
+  .cb-nav.sans-prospects{grid-template-columns:repeat(3,1fr);}
+  .cb-nav.sans-prospects [data-onglet="prospects"]{display:none;}
   .cb-fab{position:fixed;right:15px;z-index:9997;width:56px;height:56px;border-radius:50%;border:none;
   background:var(--mauve);color:var(--base);font-size:30px;line-height:0;cursor:pointer;box-shadow:0 6px 20px var(--ombre);
   align-items:center;justify-content:center;padding:0 0 3px;}
@@ -762,6 +765,20 @@
   text-align:left;padding:14px 13px;border-radius:11px;cursor:pointer;min-height:52px;width:100%;}
   .cb-menu-i:active{background:var(--surface0);}
   .cb-menu-i span{font-size:17px;width:22px;text-align:center;flex:0 0 auto;color:var(--subtext0);}
+
+  /* Choix d'ajout : le « + » demande candidature ou à postuler.
+     Carte centrée sur desktop, feuille montante sur mobile (voir @media). */
+  .cb-choix-ov{position:fixed;inset:0;background:var(--voile);z-index:99998;display:none;align-items:center;justify-content:center;padding:20px;}
+  .cb-choix-ov.open{display:flex;}
+  .cb-choix{background:var(--base);border:1px solid var(--surface1);border-radius:16px;width:100%;max-width:360px;
+  padding:14px;display:flex;flex-direction:column;gap:9px;}
+  .cb-choix h3{margin:2px 2px 4px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--overlay1);}
+  .cb-choix button{display:flex;align-items:center;gap:13px;background:var(--mantle);border:1px solid var(--surface0);color:var(--text);
+  border-radius:12px;padding:13px 14px;font:inherit;font-size:15px;font-weight:560;cursor:pointer;text-align:left;min-height:56px;}
+  .cb-choix button:hover{border-color:var(--surface2);background:var(--surface0);}
+  .cb-choix button>span{font-size:21px;width:26px;text-align:center;flex:0 0 auto;color:var(--mauve);line-height:1;}
+  .cb-choix button i{font-style:normal;flex:1;min-width:0;}
+  .cb-choix button small{display:block;font-weight:400;font-size:11.5px;color:var(--overlay1);margin-top:2px;}
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--lavender);outline-offset:1px;}
   @media(max-width:620px){
   .cb-app{padding:14px 12px calc(112px + env(safe-area-inset-bottom));}
@@ -802,15 +819,20 @@
   .cb-pin-main{padding:9px 4px;}
   .cb-mini{min-height:34px;padding:6px 10px;}
 
-  .cb-card{grid-template-columns:1fr;padding:12px 13px;}
-  .cb-side{flex-direction:row;align-items:center;justify-content:space-between;width:100%;margin-top:10px;
-  border-top:1px solid var(--surface0);padding-top:9px;}
-  .cb-age{display:flex;align-items:baseline;gap:5px;flex:0 0 auto;}
+  /* Cartes « cockpit » : lignes denses, métrique + jauge à droite, tap sur la carte pour éditer. */
+  .cb-card{grid-template-columns:1fr auto;gap:3px 12px;padding:10px 12px;align-items:center;}
+  .cb-t{gap:6px;}
+  .cb-t b{font-size:14.5px;}
+  .cb-poste{font-size:12.5px;}
+  .cb-notes{display:none;}
+  .cb-side{flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;width:auto;margin-top:0;
+  border-top:none;padding-top:0;}
+  .cb-age{display:flex;align-items:baseline;gap:4px;}
   .cb-age b{font-size:16px;white-space:nowrap;}
   .cb-age small{white-space:nowrap;}
-  .cb-gauge{flex:1 1 auto;width:auto;min-width:24px;max-width:90px;}
-  .cb-side>div:last-child{flex:0 0 auto;display:flex;gap:6px;flex-wrap:nowrap;}
-  .cb-t b{font-size:15px;}
+  .cb-gauge{width:52px;max-width:52px;flex:0 0 auto;}
+  .cb-side>div:last-child{display:flex;gap:6px;}
+  .cb-side button[data-edit]{display:none;}   /* le tap sur la carte ouvre déjà la fiche */
 
   /* Fenêtres : feuilles pleine hauteur, actions collées en bas et atteignables au pouce. */
   .cb-ov{padding:0;align-items:stretch;}
@@ -833,8 +855,7 @@
 
   .cb-radar{padding:10px 13px;margin-bottom:13px;}
   .cb-radar-b{font-size:13px;}
-  .cb-notes{font-size:12.5px;}
-  .cb-meta{font-size:10.5px;gap:6px;}
+  .cb-meta{font-size:10.5px;gap:4px 7px;}
   .cb-list{gap:7px;}
   .cb-empty{padding:40px 16px;}
   .cb-ov{overscroll-behavior:contain;}
@@ -848,6 +869,11 @@
   .cb-bar .cb-btn{flex:0 0 auto;}
   .cb-toast{left:10px;right:10px;bottom:calc(132px + env(safe-area-inset-bottom));transform:translate(0,12px);max-width:none;}
   .cb-toast.show{transform:translate(0,0);}
+
+  /* Choix d'ajout : feuille montante en bas, comme le menu « Plus ». */
+  .cb-choix-ov{align-items:flex-end;padding:0;}
+  .cb-choix{max-width:none;border-radius:16px 16px 0 0;border-bottom:none;
+  padding:8px 10px calc(12px + env(safe-area-inset-bottom));animation:cb-monte .2s ease;}
   }
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}`;
 
@@ -882,7 +908,7 @@
     <div class="cb-tools">
       <div class="cb-search"><input id="q" type="search" placeholder="Chercher une entreprise, un poste, une note…"></div>
       <div class="cb-chips" id="chips"></div>
-      <button class="cb-btn p" id="btn-ajouter">+ Candidature</button>
+      <button class="cb-btn p" id="btn-ajouter">+ Ajouter</button>
     </div>
     <ul class="cb-list" id="list"></ul>
   </div>
@@ -1025,6 +1051,14 @@
     </div>
   </div>
 
+  <div class="cb-choix-ov" id="ov-ajout">
+    <div class="cb-choix" role="menu">
+      <h3>Ajouter</h3>
+      <button data-ajout="cand" role="menuitem"><span>+</span><i>Candidature<small>Une entreprise à qui tu as déjà postulé</small></i></button>
+      <button data-ajout="prosp" role="menuitem"><span>☆</span><i>À postuler<small>Une entreprise repérée, pas encore contactée</small></i></button>
+    </div>
+  </div>
+
   <div class="cb-toast" id="toast"></div>`;
 
   document.head.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">';
@@ -1097,6 +1131,13 @@
 
     $('#n-cand').textContent = items.length;
     $('#n-prosp').textContent = prospects.length;
+    // Aucun prospect : le sélecteur n'a plus lieu d'être. On le masque (desktop et mobile)
+    // et on ramène la vue sur les candidatures. Le « + » permet toujours d'en créer un.
+    const aProspects = prospects.length > 0;
+    if (!aProspects && onglet === 'prospects') onglet = 'candidatures';
+    document.querySelector('.cb-onglets').style.display = aProspects ? '' : 'none';
+    $('#cb-nav').classList.toggle('sans-prospects', !aProspects);
+
     document.querySelectorAll('.cb-onglet').forEach(b =>
       b.setAttribute('aria-selected', b.dataset.onglet === onglet));
     // Barre de navigation mobile : même état actif, badges de comptage.
@@ -1107,7 +1148,6 @@
     const prospectsVue = onglet === 'prospects';
     $('#chips').style.display = prospectsVue ? 'none' : '';
     $('#radar').style.display = prospectsVue ? 'none' : '';
-    $('#btn-ajouter').textContent = prospectsVue ? '+ Entreprise à postuler' : '+ Candidature';
     $('#q').placeholder = prospectsVue
       ? 'Chercher une entreprise, un poste, une note…'
       : 'Chercher une entreprise, un poste, une note…';
@@ -1844,7 +1884,7 @@
     if (carte) rendreMarqueurs();
   });
   $('#q').addEventListener('input', e => { recherche = e.target.value; rendre(); });
-  $('#btn-ajouter').addEventListener('click', () => onglet === 'prospects' ? ouvrirProspect(null) : ouvrirFiche(null));
+  $('#btn-ajouter').addEventListener('click', ouvrirChoixAjout);
   $('#p-annuler').addEventListener('click', () => { $('#ov-prospect').classList.remove('open'); editProspect = null; });
   $('#p-valider').addEventListener('click', validerProspect);
   $('#p-suppr').addEventListener('click', () => {
@@ -1900,7 +1940,19 @@
   const fermerMenu = () => menuOv.classList.remove('open');
   $('#nav-carte').addEventListener('click', ouvrirCarte);
   $('#nav-plus').addEventListener('click', () => menuOv.classList.add('open'));
-  $('#cb-fab').addEventListener('click', () => onglet === 'prospects' ? ouvrirProspect(null) : ouvrirFiche(null));
+
+  // Le « + » (flottant sur mobile, en ligne sur desktop) demande quoi ajouter.
+  function ouvrirChoixAjout() { $('#ov-ajout').classList.add('open'); }
+  const ajoutOv = $('#ov-ajout');
+  $('#cb-fab').addEventListener('click', ouvrirChoixAjout);
+  ajoutOv.addEventListener('click', e => {
+    if (e.target === ajoutOv) { ajoutOv.classList.remove('open'); return; }  // tap sur le voile
+    const b = e.target.closest('[data-ajout]');
+    if (!b) return;
+    ajoutOv.classList.remove('open');
+    if (b.dataset.ajout === 'prosp') ouvrirProspect(null); else ouvrirFiche(null);
+  });
+
   menuOv.addEventListener('click', e => {
     if (e.target === menuOv) { fermerMenu(); return; }        // tap sur le voile
     const b = e.target.closest('[data-act]');
@@ -1928,7 +1980,7 @@
   });
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') document.querySelectorAll('.cb-ov.open,.cb-menu-ov.open').forEach(o => o.classList.remove('open'));
+    if (e.key === 'Escape') document.querySelectorAll('.cb-ov.open,.cb-menu-ov.open,.cb-choix-ov.open').forEach(o => o.classList.remove('open'));
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('#ov-fiche').classList.contains('open')) validerFiche();
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('#ov-prospect').classList.contains('open')) validerProspect();
     if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); enregistrer(); }
