@@ -27,6 +27,15 @@ ksuite.infomaniak.com/{compte}/kdrive/app/drive/{drive_id}/files/{directory_id}/
 
 Ils sont pré-remplis dans le code et modifiables depuis les réglages. La fenêtre des réglages contient également un diagnostic, qui teste la lecture, et une sonde qui vérifie les formes d'appel de l'écriture sur un fichier jetable.
 
+## Cap ingé
+
+Deuxième userscript du dépôt, `cap-inge.user.js`, indépendant du carnet : une page de recherche d'écoles d'ingénieur en alternance et d'entreprises robotique, avec son propre classeur kDrive (`Cap ingé.xlsx`, feuilles `Écoles` et `Entreprises`). Shortlist, filtre « proche de Bruz », ajout, modification et suppression depuis la page.
+
+1. Ouvrir l'URL brute de `cap-inge.user.js` pour l'installer dans Violentmonkey.
+2. Ouvrir `https://example.com/#cap`.
+3. Dans les réglages, coller un token API (scope `drive`), vérifier le `drive_id` et le `directory_id` du dossier, puis « Créer le fichier » : il est déposé sur kDrive avec la liste de départ, et son `file_id` est rempli automatiquement.
+4. Sur un autre appareil, saisir le même token et ce `file_id`, puis « Enregistrer et charger ».
+
 ## Points de vigilance
 
 Fermer l'éditeur OnlyOffice de kDrive avant d'enregistrer, faute de quoi le fichier est verrouillé.
